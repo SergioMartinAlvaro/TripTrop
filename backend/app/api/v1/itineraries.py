@@ -172,11 +172,18 @@ async def get_recommendations(
     current_user: User = Depends(get_current_user)
 ):
     """Get destination recommendations based on preferences."""
-    gemini_service = GeminiService()
-    
-    recommendations = gemini_service.get_destination_recommendations(
-        preferences=preferences,
-        budget=budget
-    )
-    
-    return recommendations
+    try:
+        gemini_service = GeminiService()
+        
+        recommendations = gemini_service.get_destination_recommendations(
+            preferences=preferences,
+            budget=budget
+        )
+        
+        return recommendations
+    except Exception:
+        # Don't expose internal error details
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Unable to generate recommendations. Please try again later."
+        )

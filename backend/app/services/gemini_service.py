@@ -110,10 +110,11 @@ Format the response as JSON with the following structure:
                 }
             
             return itinerary_data
-        except Exception as e:
-            print(f"Error generating itinerary: {e}")
+        except Exception:
+            # Log generic error without exposing sensitive details
+            print("Error generating itinerary: Unable to generate with AI")
             return {
-                "error": str(e),
+                "error": "generation_failed",
                 "overview": "Failed to generate itinerary. Please try again."
             }
     
@@ -166,6 +167,7 @@ Format as JSON array of destinations.
                 recommendations = [{"raw_response": text}]
             
             return {"recommendations": recommendations}
-        except Exception as e:
-            print(f"Error getting recommendations: {e}")
-            return {"error": str(e), "recommendations": []}
+        except Exception:
+            # Log generic error without exposing sensitive details
+            print("Error getting recommendations: Unable to fetch recommendations")
+            return {"error": "fetch_failed", "recommendations": []}

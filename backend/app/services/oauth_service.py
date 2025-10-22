@@ -44,6 +44,7 @@ async def get_google_user_info(token: str) -> Optional[Dict[str, Any]]:
             if response.status_code == 200:
                 return response.json()
             return None
-    except Exception as e:
-        print(f"Error getting Google user info: {e}")
+    except Exception:
+        # Log generic error without exposing sensitive details
+        print("Error getting Google user info: Unable to retrieve user data")
         return None

@@ -28,8 +28,9 @@ class SecretManagerService:
             name = f"projects/{self.project_id}/secrets/{secret_id}/versions/{version}"
             response = self.client.access_secret_version(request={"name": name})
             return response.payload.data.decode("UTF-8")
-        except Exception as e:
-            print(f"Error retrieving secret {secret_id}: {e}")
+        except Exception:
+            # Log error without exposing any secret-related information
+            print("Error retrieving secret: Unable to access secret from Secret Manager")
             return None
     
     def create_secret(self, secret_id: str, secret_value: str) -> bool:
@@ -63,6 +64,7 @@ class SecretManagerService:
                 }
             )
             return True
-        except Exception as e:
-            print(f"Error creating secret {secret_id}: {e}")
+        except Exception:
+            # Log error without exposing any secret-related information
+            print("Error creating secret: Unable to create secret in Secret Manager")
             return False

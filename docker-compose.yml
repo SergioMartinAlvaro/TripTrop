@@ -1,0 +1,67 @@
+# Docker Compose for TripTrop Development Environment
+
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:15-alpine
+    container_name: triptrop-db
+    environment:
+      POSTGRES_DB: triptrop
+      POSTGRES_USER: triptrop_user
+      POSTGRES_PASSWORD: triptrop_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/migrations/db_init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U triptrop_user -d triptrop"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend FastAPI
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: triptrop-backend
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - ./backend:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://triptrop_user:triptrop_password@db:5432/triptrop
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=triptrop
+      - DB_USER=triptrop_user
+      - DB_PASSWORD=triptrop_password
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - ./backend/.env
+
+  # Frontend React + Vite
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: triptrop-frontend
+    command: npm run dev
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_BASE_URL=http://localhost:8000
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
